@@ -19,18 +19,26 @@ app.use(express.static("public"));
 
 app.get("/", async (req, res) => {
   let countries = [];
-  let totalCountries = 0;
-  const result = await db.query("SELECT country_code FROM visited_countries")
+  const result = await db.query("SELECT country_code FROM visited_countries");
   result.rows.forEach(element => {
     countries.push(element.country_code)
   })
-  console.log(countries)
+  console.log(countries);
   res.render("index.ejs", { countries : countries, total: countries.length } )
 })
 
 app.post("/add", async (req, res) =>{
   const newCoutry = req.body.country;
-  db.query(`INSERT INTO visited_countries VALUES (country_code)`)
+  console.log(newCoutry)
+  const result = await db.query("SELECT country_code, country_name FROM countries");
+  result.rows.forEach(element => {
+    if(element.country_name === newCoutry){
+      db.query(`INSERT INTO visited_countries (country_code) VALUES($1)`, [element.country_code]);
+    }
+    else{
+      console.log("País no encontrado.");
+    }
+  });
   res.redirect("/")
 });
 

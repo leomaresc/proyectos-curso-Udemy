@@ -10,7 +10,7 @@
 
 <body>
   <form action="/add" method="post">
-    <input type="text" name="country" autofocus placeholder="<%= locals.error ? error :  'Enter country name'%>">
+    <input type="text" name="country" id="myInput" autofocus placeholder="<%= locals.error ? error :  'Enter country name'%>">
     <button type="submit">Add</button>
   </form>
 
@@ -380,7 +380,6 @@
     country_codes.forEach(code => {
       document.getElementById(code).style.fill = 'teal'
     });
-
   </script>
 </body>
 
