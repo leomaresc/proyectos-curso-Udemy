@@ -8,7 +8,7 @@ const db = new pg.Client({
   user: "postgres",
   host: "localhost",
   database: "world",
-  password: "123456",
+  password: "AndreaLeo*21",
   port: 5432,
 });
 
@@ -31,7 +31,7 @@ app.get("/", async (req, res) => {
 app.post("/add", async (req, res) =>{
   const newCountry = req.body.country;
   let comparisonCheck;
-  const result = await db.query("SELECT country_code, country_name FROM countries WHERE country_name = $1", [newCountry]);
+  const result = await db.query("SELECT country_code, country_name FROM countries WHERE country_name LIKE $1", [newCountry+"%"]);
   const comparison = await db.query('SELECT country_code FROM visited_countries');
   let comparison2 = [];
   comparison.rows.forEach(element => {
