@@ -19,10 +19,11 @@ app.use(express.static("public"));
 
 let currentUserId = 1;
 
-let users = [
-  { id: 1, name: "Angela", color: "teal" },
-  { id: 2, name: "Jack", color: "powderblue" },
-];
+let users = [];
+var getUsers = await db.query("SELECT * FROM users");
+getUsers.rows.forEach(element => {
+  users.push(element);
+});
 
 async function checkVisisted() {
   const result = await db.query("SELECT country_code FROM visited_countries");
@@ -33,6 +34,7 @@ async function checkVisisted() {
   return countries;
 }
 app.get("/", async (req, res) => {
+
   const countries = await checkVisisted();
   res.render("index.ejs", {
     countries: countries,
@@ -54,8 +56,8 @@ app.post("/add", async (req, res) => {
     const countryCode = data.country_code;
     try {
       await db.query(
-        "INSERT INTO visited_countries (country_code) VALUES ($1)",
-        [countryCode]
+        "INSERT INTO visited_countries (country_code, user_id) VALUES ($1, $2)",
+        [countryCode, currentUserId]
       );
       res.redirect("/");
     } catch (err) {
@@ -65,9 +67,22 @@ app.post("/add", async (req, res) => {
     console.log(err);
   }
 });
-app.post("/user", async (req, res) => {});
+
+app.post("/user", async (req, res) => {
+  if(req.body.add){
+    res.render("new.ejs")
+  } else{
+    currentUserId = req.body.user;
+    res.redirect("/")
+  }
+  
+});
 
 app.post("/new", async (req, res) => {
+  const newUser = req.body;
+  console.log(newUser.name)
+  db.query("INSERT INTO users (name, color) VALUES ($1, $2) RETURNING $1", [newUser.name, newUser.color]);
+  res.redirect("/")
   //Hint: The RETURNING keyword can return the data that was inserted.
   //https://www.postgresql.org/docs/current/dml-returning.html
 });
