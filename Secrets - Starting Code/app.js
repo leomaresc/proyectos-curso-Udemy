@@ -1,6 +1,8 @@
+import 'dotenv/config'
 import express from "express";
 import bodyParser from "body-parser";
 import pg from "pg";
+import bcrypt from "bcrypt";
  
 const app = express();
 const port = 3000
@@ -18,8 +20,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 var currentUser;
-const host = "http://localhost:3000/";
+const saltRounds = parseInt(process.env.SALT_ROUNDS);
+const host = process.env.HOST;
 const allowedReferers = [host+"login", host+"secrets", host+"submit"]
+console.log(typeof(saltRounds))
 
 app.get("/", async (req, res) => {
     res.render("home.ejs")
@@ -34,19 +38,27 @@ app.post("/login", async (req, res) => {
     const password = req.body.password;
     try{
         const checkLogin = await db.query("SELECT id, email, password FROM users WHERE email = $1", [username]);
-        if(checkLogin.rowCount === 0){
-            console.log("Usuario no existe.")
-            res.redirect("/login")
-        } else if(JSON.stringify(checkLogin.rows[0].password) != JSON.stringify(password)){
-            console.log("Contraseña incorrecta." + "    " + JSON.stringify(checkLogin.rows[0].password) + "   " + JSON.stringify(password))
-            res.redirect("/login")
+        if(checkLogin.rows[0] === undefined){
+            console.log("El usuario no existe");
+            res.redirect("/login");
         } else{
-            currentUser = checkLogin.rows[0].id;
-            console.log("Contraseña correcta")
-            res.redirect("/secrets");
+            bcrypt.compare(password, checkLogin.rows[0].password, function(err, result) {
+                if(result === false){
+                    console.log("Contraseña incorrecta.")
+                    res.redirect("/login")
+                } else {
+                    currentUser = checkLogin.rows[0].id;
+                    console.log("Contraseña correcta")
+                    res.redirect("/secrets");
+                }
+                if(err){
+                    console.log(err);
+                }
+            });
         }
     } catch (err){
         console.error(err);
+        res.redirect("/login")
     }
 
 });
@@ -66,7 +78,9 @@ app.post("/register", async (req, res) => {
     try{
         const lookCoincidence = await db.query("SELECT email FROM users WHERE email = $1", [newUser]);
         if(lookCoincidence.rowCount === 0){
-            db.query("INSERT INTO users (email, password) VALUES ($1, $2)", [newUser, newPassword]);
+            bcrypt.hash(newPassword, saltRounds, function(err, hash) {
+                db.query("INSERT INTO users (email, password) VALUES ($1, $2)", [newUser, hash]);
+            });
             console.log("Cuenta creada con exito");
             res.redirect("/");
         } else if(JSON.stringify(lookCoincidence.rows[0].email) === JSON.stringify(newUser)){
