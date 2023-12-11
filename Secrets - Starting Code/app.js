@@ -4,6 +4,7 @@ import bodyParser from "body-parser";
 import pg from "pg";
 import bcrypt from "bcrypt";
 import passport from 'passport';
+import LocalStrategy from 'passport-local'
 import session from 'express-session';
 import logger from 'morgan';
  
@@ -17,16 +18,75 @@ const db = new pg.Client({
     port: "5432"
 });
 
+
+
 db.connect();
+// Conexión con la base datos.
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.use(logger('dev'))
+
 app.use(session({
   secret: "987f4bd6d4315c20b2ec70a46ae846d19d0ce563450c02c5b1bc71d5d580060b",
   saveUninitialized: false,
   resave: false,
 }));
+// Se especifíca como se van a crear nuevas sesiones en la aplicación.
+// la propiedad 'secret' debería generarse de manera aleatoria. En este caso hay un valor fijo.
+
+app.use(passport.initialize())
+// Esto hace que se inicio passport en cada llamada de ruta.
+
+app.use(passport.session())
+// Permite que passport use express-session
+
+var authUser = async (user, password, done) => {
+    const checkLogin = await db.query(
+        "SELECT id, email, password FROM users WHERE email = $1", 
+        [user]);
+        const userId = checkLogin.rows[0].id;
+        const userEmail = checkLogin.rows[0].email;
+        const userPassword = checkLogin.rows[0].password;
+        if(checkLogin.rows[0] === undefined){
+            return done (null, false)
+        } else{
+            bcrypt.compare(password, userPassword, function(err, result) {
+                if(result === false){
+                    console.log("Contraseña incorrecta.")
+                    return done (null, false)
+                } else {
+                    let authenticated_user = { id: userId, name: userEmail }
+                    console.log("Contraseña correcta");
+                    return done (null, authenticated_user);
+                }
+                if(err){
+                    console.log(err);
+                }
+            })
+    }
+}
+// Toda la función encagargada de autenticar a los usuarios cuando intenten iniciar sesión.
+
+passport.use(new LocalStrategy (authUser))
+// authUser es una función que se definirá después y contendrá los pasos para autenticar el usuario y devolverá el usuario autenticado.
+
+passport.serializeUser( (userObj, done) => {
+    done(null, userObj)
+})
+// Serialización de usuario.
+
+passport.deserializeUser((userObj, done) => {
+    done (null, userObj )
+})
+// Deserialización de usario.
+
+var checkAuthenticated = (req, res, next) => {
+    if (req.isAuthenticated()) { return next() }
+    res.redirect("/login")
+  }
+// Función para autenticar.
+
 
 const saltRounds = parseInt(process.env.SALT_ROUNDS);
 const host = process.env.HOST;
@@ -43,44 +103,13 @@ app.get("/", async (req, res) => {
 });
 
 app.get("/login", async (req, res) => {
-    if(!req.session.username){
         res.render("login.ejs")
-    } else{
-        res.redirect("/secrets")
-    }
-    
 });
 
-app.post("/login", async (req, res) => {
-    const username = req.body.username;
-    const password = req.body.password;
-    try{
-        const checkLogin = await db.query("SELECT id, email, password FROM users WHERE email = $1", [username]);
-        if(checkLogin.rows[0] === undefined){
-            console.log("El usuario no existe");
-            res.redirect("/login");
-        } else{
-            bcrypt.compare(password, checkLogin.rows[0].password, function(err, result) {
-                if(result === false){
-                    console.log("Contraseña incorrecta.")
-                    res.redirect("/login")
-                } else {
-                    console.log("Contraseña correcta");
-                    req.session.username = req.body.username;
-                    req.session.user_id = checkLogin.rows[0].id;
-                    res.redirect("/secrets");
-                }
-                if(err){
-                    console.log(err);
-                }
-            });
-        }
-    } catch (err){
-        console.error(err);
-        res.redirect("/login")
-    }
-
-});
+app.post("/login", passport.authenticate('local', {
+    successRedirect: "/secrets",
+    failureRedirect: "/login",
+}));
 
 app.get("/logout", async (req, res) => {
     req.session.destroy();
@@ -113,21 +142,13 @@ app.post("/register", async (req, res) => {
 
 });
 
-app.get("/secrets", async (req, res) => {
-    if(!req.session.username){
-        console.log("No hay usuario logueado.")
-        res.redirect("/login")
-    } else {
+app.get("/secrets", checkAuthenticated, async (req, res) => {
+    const ojo = JSON.stringify(req.user.id)
     let secrets = []
-    secrets = await db.query("SELECT secret FROM secrets WHERE user_id = $1", [req.session.user_id])
-    if(!req.session.username){
-        console.log(req.get('Referrer'))
-        res.redirect("/login");
-    } else{
-        console.log("Bienvenido " + req.session.username)
-        res.render("secrets.ejs", {secrets : secrets.rows})
-    }
-}
+    secrets = await db.query("SELECT secret FROM secrets WHERE user_id = $1", [parseInt(ojo)])
+    console.log(secrets)
+    res.render("secrets.ejs", {secrets : secrets.rows})
+
 });
 
 app.get("/submit", async (req, res) => {
