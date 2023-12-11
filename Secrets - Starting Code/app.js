@@ -3,6 +3,9 @@ import express from "express";
 import bodyParser from "body-parser";
 import pg from "pg";
 import bcrypt from "bcrypt";
+import passport from 'passport';
+import session from 'express-session';
+import logger from 'morgan';
  
 const app = express();
 const port = 3000
@@ -18,19 +21,34 @@ db.connect();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
+app.use(logger('dev'))
+app.use(session({
+  secret: "987f4bd6d4315c20b2ec70a46ae846d19d0ce563450c02c5b1bc71d5d580060b",
+  saveUninitialized: false,
+  resave: false,
+}));
 
-var currentUser;
 const saltRounds = parseInt(process.env.SALT_ROUNDS);
 const host = process.env.HOST;
 const allowedReferers = [host+"login", host+"secrets", host+"submit"]
-console.log(typeof(saltRounds))
 
 app.get("/", async (req, res) => {
-    res.render("home.ejs")
+    if(!req.session.username){
+        res.render("home.ejs")
+        console.log("Bienvenido. No hay sesión iniciada.")
+    }
+    else{
+        res.redirect("/secrets")
+    }
 });
 
 app.get("/login", async (req, res) => {
-    res.render("login.ejs")
+    if(!req.session.username){
+        res.render("login.ejs")
+    } else{
+        res.redirect("/secrets")
+    }
+    
 });
 
 app.post("/login", async (req, res) => {
@@ -47,8 +65,9 @@ app.post("/login", async (req, res) => {
                     console.log("Contraseña incorrecta.")
                     res.redirect("/login")
                 } else {
-                    currentUser = checkLogin.rows[0].id;
-                    console.log("Contraseña correcta")
+                    console.log("Contraseña correcta");
+                    req.session.username = req.body.username;
+                    req.session.user_id = checkLogin.rows[0].id;
                     res.redirect("/secrets");
                 }
                 if(err){
@@ -64,7 +83,8 @@ app.post("/login", async (req, res) => {
 });
 
 app.get("/logout", async (req, res) => {
-    currentUser = -1;
+    req.session.destroy();
+    console.log("Adios!");
     res.redirect("/");
 });
 
@@ -94,14 +114,20 @@ app.post("/register", async (req, res) => {
 });
 
 app.get("/secrets", async (req, res) => {
+    if(!req.session.username){
+        console.log("No hay usuario logueado.")
+        res.redirect("/login")
+    } else {
     let secrets = []
-    secrets = await db.query("SELECT secret FROM secrets WHERE user_id = $1", [currentUser])
-    if(!allowedReferers.includes(req.header('Referrer'))){
+    secrets = await db.query("SELECT secret FROM secrets WHERE user_id = $1", [req.session.user_id])
+    if(!req.session.username){
         console.log(req.get('Referrer'))
         res.redirect("/login");
     } else{
+        console.log("Bienvenido " + req.session.username)
         res.render("secrets.ejs", {secrets : secrets.rows})
     }
+}
 });
 
 app.get("/submit", async (req, res) => {
