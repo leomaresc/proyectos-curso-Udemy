@@ -1,0 +1,94 @@
+[33mcommit 41b1779e9d68e59f84b8081f2640bc4ebdf0cdbc[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: leomaresc <leomarsalazarec@gmail.com>
+Date:   Tue Dec 12 12:29:48 2023 -0300
+
+    Finalizado modulo de seguridad nivel 5.
+
+[33mcommit ee4e9d6fa15297c656abcbbaad5102fa91b56ac2[m
+Author: leomaresc <leomarsalazarec@gmail.com>
+Date:   Mon Dec 11 18:11:05 2023 -0300
+
+    Papi no sé, pero en tu historial hay algo que tienes que ver con respecto a passport.
+
+[33mcommit c59ce1f4ff16f3275a8cd68a8c5f59354928f8c8[m
+Author: leomaresc <leomarsalazarec@gmail.com>
+Date:   Mon Dec 11 13:00:00 2023 -0300
+
+    Implementado sistema de sesión con express-session
+
+[33mcommit 126a433dd5a64e5c89496b617ce8a13618e987b9[m
+Author: leomaresc <leomarsalazarec@gmail.com>
+Date:   Wed Dec 6 13:12:10 2023 -0300
+
+    Se agrego encriptado a las contraseñas.
+
+[33mcommit cc4de1714aba3617e973dd3e9c5216fec70d5189[m
+Author: leomaresc <leomarsalazarec@gmail.com>
+Date:   Tue Dec 5 15:43:40 2023 -0300
+
+    Proyecto Secrets 'Finalizado'
+    
+    La verdad es que nisiquiera vi cuales era los requisitos de la clase, solo me puse a programar el como yo creía que la página debía ser.
+
+[33mcommit 8863c434900984144cd09dad0a6636d542b14250[m
+Author: leomaresc <salazarleomar@gmail.com>
+Date:   Mon Dec 4 21:00:37 2023 -0300
+
+    Casi listo
+
+[33mcommit 76a78a56ab6c096a9e6e4ac7019604634a08bc2e[m
+Merge: 215f4e1 f3a5f5a
+Author: leomaresc <salazarleomar@gmail.com>
+Date:   Mon Dec 4 19:03:46 2023 -0300
+
+    Merge branch 'main' of https://github.com/leomaresc/estudiando-ando
+
+[33mcommit 215f4e1270c85beca5c49fbb86cd617883bfb790[m
+Author: leomaresc <salazarleomar@gmail.com>
+Date:   Mon Dec 4 19:03:27 2023 -0300
+
+    Family travel, almost done
+
+[33mcommit f3a5f5aca1431433cc41f25968c6d40a4101e26b[m
+Author: leomaresc <leomarsalazarec@gmail.com>
+Date:   Mon Dec 4 15:07:09 2023 -0300
+
+    Inicio proyecto de autenticación
+
+[33mcommit 3d6c8ffc2c9a7ad3585f1ccabab607b936b8127a[m
+Author: leomaresc <leomarsalazarec@gmail.com>
+Date:   Mon Dec 4 11:55:05 2023 -0300
+
+    Iniciando proyecto permalist.
+
+[33mcommit 3ceb11057491c41f9e4a4125bea956a497e2494e[m
+Author: leomaresc <salazarleomar@gmail.com>
+Date:   Thu Nov 30 21:50:33 2023 -0300
+
+    Iniciando nuevo proyecto.
+
+[33mcommit 50a28371997dd36210a3badb7913390c499480e2[m
+Author: leomaresc <leomarsalazarec@gmail.com>
+Date:   Thu Nov 30 12:52:57 2023 -0300
+
+    Finalizado proyecto de travel tracker.
+    
+    Se agregó funcionalidades opcionales al proyecto.
+
+[33mcommit 915940d54fb987f8aa598829d49bdab10edcb490[m
+Author: leomaresc <salazarleomar@gmail.com>
+Date:   Wed Nov 29 22:19:40 2023 -0300
+
+    Finalizado todo. Creo.
+
+[33mcommit 016e11b514c48f98d5591ab036d665dc9cbe9e70[m
+Author: leomaresc <leomarsalazarec@gmail.com>
+Date:   Wed Nov 29 16:35:49 2023 -0300
+
+    Finalizado ejercicio número dos.
+
+[33mcommit 22f1d2a09fb8a764f653635c77780f61a9d0c4d6[m[33m ([m[1;31morigin/master[m[33m)[m
+Author: leomaresc <leomarsalazarec@gmail.com>
+Date:   Wed Nov 29 13:45:09 2023 -0300
+
+    second commit

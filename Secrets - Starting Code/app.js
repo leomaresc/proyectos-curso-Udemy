@@ -5,6 +5,7 @@ import pg from "pg";
 import bcrypt from "bcrypt";
 import passport from 'passport';
 import LocalStrategy from 'passport-local'
+import googleStrategy from 'passport-google-oauth20'
 import session from 'express-session';
 import logger from 'morgan';
  
@@ -81,6 +82,17 @@ passport.deserializeUser((userObj, done) => {
     done (null, userObj )
 })
 // Deserialización de usario.
+
+passport.use(new googleStrategy({
+    clientID: process.env.CLIENT_ID,
+    clientSecret: process.env.CLIENT_SECRET,
+    callbackURL: "http://localhost:3000/auth/google/secrets"
+  },
+  function(accessToken, refreshToken, profile, cb) {
+    console.log(JSON.stringify(profile))
+    return accessToken;
+  }
+));
 
 var checkAuthenticated = (req, res, next) => {
     if (req.isAuthenticated()) { return next() }
@@ -169,6 +181,17 @@ app.post("/submit", async (req, res) =>{
     const newSecret = req.body.secret;
     await db.query("INSERT INTO secrets (secret, user_id) VALUES ($1, $2)", [newSecret, currentUserId]);
     res.redirect("/secrets");
+});
+
+app.get('/auth/google',
+  passport.authenticate('google', { scope: ['profile'] }));
+
+app.get('/auth/google/secrets', passport.authenticate('google', { 
+    failureRedirect: '/login',
+    successRedirect: '/secrets' 
+}),
+function(req, res) {
+    res.redirect('/secrets');
 });
  
 app.listen(port, () => {
