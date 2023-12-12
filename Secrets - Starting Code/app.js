@@ -45,12 +45,13 @@ var authUser = async (user, password, done) => {
     const checkLogin = await db.query(
         "SELECT id, email, password FROM users WHERE email = $1", 
         [user]);
-        const userId = checkLogin.rows[0].id;
-        const userEmail = checkLogin.rows[0].email;
-        const userPassword = checkLogin.rows[0].password;
         if(checkLogin.rows[0] === undefined){
+            console.log("Usuario no existe.");
             return done (null, false)
         } else{
+            const userId = checkLogin.rows[0].id;
+            const userEmail = checkLogin.rows[0].email;
+            const userPassword = checkLogin.rows[0].password;
             bcrypt.compare(password, userPassword, function(err, result) {
                 if(result === false){
                     console.log("Contraseña incorrecta.")
@@ -93,7 +94,7 @@ const host = process.env.HOST;
 const allowedReferers = [host+"login", host+"secrets", host+"submit"]
 
 app.get("/", async (req, res) => {
-    if(!req.session.username){
+    if(!req.session.passport){
         res.render("home.ejs")
         console.log("Bienvenido. No hay sesión iniciada.")
     }
@@ -103,7 +104,11 @@ app.get("/", async (req, res) => {
 });
 
 app.get("/login", async (req, res) => {
+    if(!req.session.passport){
         res.render("login.ejs")
+    } else {
+        res.redirect("/secrets")
+    }
 });
 
 app.post("/login", passport.authenticate('local', {
@@ -143,9 +148,9 @@ app.post("/register", async (req, res) => {
 });
 
 app.get("/secrets", checkAuthenticated, async (req, res) => {
-    const ojo = JSON.stringify(req.user.id)
+    const currentUserId = JSON.stringify(req.user.id)
     let secrets = []
-    secrets = await db.query("SELECT secret FROM secrets WHERE user_id = $1", [parseInt(ojo)])
+    secrets = await db.query("SELECT secret FROM secrets WHERE user_id = $1", [parseInt(currentUserId)])
     console.log(secrets)
     res.render("secrets.ejs", {secrets : secrets.rows})
 
@@ -160,8 +165,9 @@ app.get("/submit", async (req, res) => {
 });
 
 app.post("/submit", async (req, res) =>{
+    const currentUserId = JSON.stringify(req.user.id)
     const newSecret = req.body.secret;
-    await db.query("INSERT INTO secrets (secret, user_id) VALUES ($1, $2)", [newSecret, currentUser]);
+    await db.query("INSERT INTO secrets (secret, user_id) VALUES ($1, $2)", [newSecret, currentUserId]);
     res.redirect("/secrets");
 });
  
